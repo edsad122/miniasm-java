@@ -4,7 +4,7 @@ import java.nio.file.Paths;
 
 public class test {
     public static void main(String[] args) throws IOException {
-        String asm= Files.readString(Paths.get("src","snippet","test.txt"));
+        String asm= Files.readString(Paths.get("snippet","test.txt"));
         AsmProgram asmResult=Assembler.assemble(asm);
         System.out.print(asmResult.toString());
         String textCoe = Converter.textSegToCoe(asmResult.getTextSeg(),64);

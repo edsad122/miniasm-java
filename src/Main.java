@@ -48,10 +48,10 @@ public class Main {
                 }
                 else {
                     // 进行链接
-                    String biosContent = Files.readString(Paths.get(".\\src\\snippet\\minisys-bios.asm"));
+                    String biosContent = Files.readString(Paths.get(".snippet","minisys-bios.asm"));
                     String userAppASM = Files.readString(path).replace("\r\n", "\n").trim();
-                    String intEntryContent = Files.readString(Paths.get(".\\src\\snippet\\minisys-interrupt-entry.asm"));
-                    String intHandlerContent = Files.readString(Paths.get(".\\src\\snippet\\minisys-interrupt-handler.asm"));
+                    String intEntryContent = Files.readString(Paths.get("snippet","minisys-interrupt-entry.asm"));
+                    String intHandlerContent = Files.readString(Paths.get("snippet","minisys-interrupt-handler.asm"));
 
                     String[] asm = (userAppASM + "\n")
                             .replace("\r\n", "\n")
