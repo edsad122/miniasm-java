@@ -10,8 +10,7 @@
     addi $s4,$zero,0xFC04   # 位码基址
 
     addi $s6,$zero,8 # off
-_bios_label1:
-    addi $s1,$zero,5        # S
+_bios_label1:addi $s1,$zero,5        # S
     addi $s2,$zero,7 # loc
     sw   $s1,0($s3)
     sw   $s2,0($s4)

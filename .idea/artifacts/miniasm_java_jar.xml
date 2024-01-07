@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="miniasm-java:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/miniasm_java_jar</output-path>
+    <root id="archive" name="miniasm-java.jar">
+      <element id="module-output" name="miniasm-java" />
+    </root>
+  </artifact>
+</component>

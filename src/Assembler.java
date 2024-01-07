@@ -54,7 +54,19 @@ public class Assembler {
         // Implementation
         return pc;
     }
-
+    /*
+    所提供的TypeScript代码中的“parseDataSeg”函数用于解析汇编语言源代码中的数据段。该函数将汇编语言指令的数组作为参数。
+    在“parseDataSeg”中，有一个嵌套函数“parseInitValue”，用于解析变量的初始值。
+    此函数接受两个参数：“type”和“init”`type是变量类型，init是变量的初始值。
+    “parseInitValue”函数首先声明，如果变量类型不是“ascii”，则初始值不应包含双引号字符。它还断言初始值不应以逗号开头或结尾。
+    如果变量类型不是“ascii”，则函数会用逗号分隔初始值，并返回一个修剪后的值数组。
+    如果变量类型为“ascii”，则函数将进入更复杂的解析过程。
+    它初始化几个变量以跟踪解析状态，包括它当前是否在带引号的字符串（“inQuote”）内，是否应转义下一个字符（“nextEscape”）、结果数组（“res”）、当前字符串的缓冲区（“buf”）和前一个字符的缓冲区。
+    然后，函数在初始值中的每个字符上进入一个循环。根据当前字符和解析状态，它会更新状态变量并将字符添加到缓冲区或结果数组中。
+    该函数使用“assert”函数来确保初始值的语法正确，如果遇到非法字符或序列，则会引发错误。
+    assert”函数在其他地方定义，用于在不满足特定条件时抛出错误。它有两个参数：“确保”和“提示”，前者是要检查的条件，后者是在不满足条件时显示的错误消息。
+    `VarCompType`类型是`__VarCompType'对象的键，该键未显示在所提供的代码中。此类型用于“parseInitValue”函数的“type”参数。
+     */
     private static List<String> parseInitValue(String type, String init) {
         assert !(!Objects.equals(type, "ascii") && init.contains("\"")) : "字符串型数据只能使用.ascii类型";
         init = init.trim();
@@ -122,12 +134,17 @@ public class Assembler {
         if (asm.get(0).split("\\s+").length > 2) {
             throw new RuntimeException("数据段首声明非法");
         }
-
-        final List<DataSegVarComp> comps = new ArrayList<>();
+        //初始化
+        List<DataSegVarComp> comps = new ArrayList<>();
         vars = new ArrayList<>();
         String name = null;
         int i = 1;
-        int addr = Integer.parseInt(startAddr);
+        int addr;
+        if(startAddr.startsWith("0x")){
+            addr=Integer.parseInt(startAddr.substring(2),16);
+        }else{
+            addr=Integer.parseInt(startAddr);
+        }
         AtomicInteger nextAddr = new AtomicInteger(addr);
 
         while (i < asm.size()) {
@@ -138,8 +155,8 @@ public class Assembler {
                 // 一个新变量开始
                 if (name != null) {
                     vars.add(new DataSegVar(name, comps, addr));
-                    comps.clear();
-                    name = null;
+                    comps=new ArrayList<>();
+                    name=null;
                     addr = nextAddr.get();
                 }
 
@@ -151,10 +168,9 @@ public class Assembler {
                 if (addr % size > 0) {
                     nextAddr.set(addr = addr + size - (addr % size));
                 }
-
-                // 推入组分记录
+                List<DataSegVarComp> finalComps = comps;
                 parseInitValue(type, varStartMatcher.group(3)).forEach(val -> {
-                    comps.add(new DataSegVarComp(type, val));
+                    finalComps.add(new DataSegVarComp(type, val.trim()));
                     nextAddr.addAndGet(size * (Objects.equals(type, "ascii") ? val.length() : 1));
                 });
             } else if (varContdMatcher.matches()) {
@@ -169,8 +185,9 @@ public class Assembler {
                 }
 
                 // 推入组分记录
+                List<DataSegVarComp> finalComps1 = comps;
                 parseInitValue(type, varContdMatcher.group(2)).forEach(val -> {
-                    comps.add(new DataSegVarComp(type, val));
+                    finalComps1.add(new DataSegVarComp(type, val.trim()));
                     nextAddr.addAndGet(size * (Objects.equals(type, "ascii") ? val.length() : 1));
                 });
             } else {
@@ -192,7 +209,6 @@ public class Assembler {
     // Method to expand macros
     public static List<String> expandMacros(List<String> asm, List<Integer> lineno) {
         List<String> expandedAsm = new ArrayList<>(asm);
-        int ruleIdx;
         String[] macros = MacroExpansionRules.expansionRules.keySet().toArray(new String[0]);
         int bias = 0;
 
@@ -205,8 +221,6 @@ public class Assembler {
                 labelPreserve = lableMatcher.group(1);
                 v = lableMatcher.group(2).trim();
             }
-
-            ruleIdx = -1;
             for (String macro : macros) {
                 Pattern pattern = MacroExpansionRules.expansionRules.get(macro).pattern;
                 Matcher m = pattern.matcher(v);
@@ -238,7 +252,12 @@ public class Assembler {
 
         // Correct the start address to 4-byte alignment (32-bit)
         final int sizeofWord = Utils.sizeof("word");
-        int startAddrNumber = Integer.parseInt(startAddr);
+        int startAddrNumber;
+        if(startAddr.startsWith("0x")){
+            startAddrNumber=Integer.parseInt(startAddr.substring(2),16);
+        }else{
+            startAddrNumber=Integer.parseInt(startAddr);
+        }
         startAddr = String.valueOf(((sizeofWord - (startAddrNumber % sizeofWord)) % sizeofWord) + startAddrNumber);
 
         // Initialize pc pointer
@@ -318,7 +337,7 @@ public class Assembler {
         pc += Utils.sizeof("ins");
         // 开始组装Instruction对象
         Instruction res = Instruction.newInstance(minisysInstructions.get(instructionIndex));
-
+        res.setSrc(symbol+" "+asm);
         for (InstructionComponent component : res.getComponents()) {
             if (component.getVal().trim().isEmpty()) {
                 res.setComponent(component.getDesc(), component.toBinary(res.getInsPattern().matcher(asm)));
@@ -352,8 +371,8 @@ public class Assembler {
                 .toList();
 
         // Find the starting lines of the data segment and text segment
-        int dataSegStartLine = asm.indexOf(".data");
-        int textSegStartLine = asm.indexOf(".text");
+        int dataSegStartLine = findSegmentStartLine(asm, ".data");
+        int textSegStartLine = findSegmentStartLine(asm, ".text");
         assert dataSegStartLine != -1 : "Data segment start not found";
         assert textSegStartLine != -1 : "Text segment start not found";
         assert dataSegStartLine < textSegStartLine : "Data segment cannot be after the text segment";
@@ -365,6 +384,14 @@ public class Assembler {
         TextSeg textSeg = parseTextSeg(asm.subList(textSegStartLine, asm.size()), lineno.subList(textSegStartLine, lineno.size()));
 
         return new AsmProgram(dataSeg, textSeg);
+    }
+    private static int findSegmentStartLine(List<String> asm, String segment) {
+        for (int i = 0; i < asm.size(); i++) {
+            if (asm.get(i).contains(segment)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
 }
@@ -385,6 +412,13 @@ class DataSegVar {
         this.name = name;
         this.comps = new ArrayList<>(comps);
         this.addr = addr;
+    }
+    public String toString(){
+        StringBuilder s=new StringBuilder();
+        for(DataSegVarComp c:comps){
+            s.append("\t").append("type:").append(c.type).append("\tval:").append(c.val).append("\n");
+        }
+        return s.toString();
     }
 
     static class AsmProgram {
@@ -447,6 +481,15 @@ class DataSeg {
             throw new RuntimeException("找不到该变量。");
         }
     }
+    public String toString(){
+        StringBuilder s=new StringBuilder();
+        s.append("startAddr:").append(startAddr).append("\t,vars:{\n");
+        for(DataSegVar v:vars){
+            s.append("name:").append(v.name).append("\taddr:").append(v.addr).append("\t{\n");
+            s.append(v.toString()).append("}\n");
+        }
+        return s.append("}").toString();
+    }
 }
 
 // Define the TextSegLabel class
@@ -503,6 +546,29 @@ class TextSeg {
 
         return binaryStringBuilder.toString();
     }
+    public String toHex() {
+        StringBuilder binaryStringBuilder = new StringBuilder();
+
+        // Iterate through instructions and append binary representation
+        for (Instruction instruction : ins) {
+            binaryStringBuilder.append(instruction.toHex()).append("——").append(instruction.getSrc()).append("\n");
+        }
+
+        return binaryStringBuilder.toString();
+    }
+    public String toString(){
+        StringBuilder s= new StringBuilder();
+        s.append("startAddr:").append(startAddr).append(",\tInstruction:{\n");
+        for(Instruction i:ins){
+            s.append("\t").append(i.getSrc()).append("\t Hex:").append(i.toHex()).append("\n");
+        }
+        s.append("},\nLabels:{\n");
+        for(TextSegLabel l:labels){
+            s.append("\t").append(l.getName()).append("\n");
+        }
+        s.append("}");
+        return s.toString();
+    }
 }
 
 // Main class to represent the AsmProgram
@@ -522,6 +588,30 @@ class AsmProgram {
     public AsmProgram(DataSeg dataSeg, TextSeg textSeg) {
         this.dataSeg = dataSeg;
         this.textSeg = textSeg;
+    }
+    public String toString(){
+        return "textSeg:{\n"+
+                addTabsToLines(textSeg.toString(),1)+"}\n"+
+                "dataSeg:{\n"+
+                addTabsToLines(dataSeg.toString(),1)+"}";
+    }
+    private static String addTabsToLines(String inputString, int numberOfTabs) {
+        String[] lines = inputString.split("\n");
+        StringBuilder indentedStringBuilder = new StringBuilder();
+
+        for (String line : lines) {
+            indentedStringBuilder.append(getTabs(numberOfTabs)).append(line).append("\n");
+        }
+
+        return indentedStringBuilder.toString();
+    }
+
+    private static String getTabs(int numberOfTabs) {
+        StringBuilder tabs = new StringBuilder();
+        for (int i = 0; i < numberOfTabs; i++) {
+            tabs.append("\t");
+        }
+        return tabs.toString();
     }
 }
 

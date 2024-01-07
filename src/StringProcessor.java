@@ -1,7 +1,6 @@
 public class StringProcessor {
 
     public static String unraw(String raw) {
-        boolean allowOctals=true;
         StringBuilder result = new StringBuilder();
         boolean escape = false;
         boolean inOctal = false;
@@ -48,7 +47,6 @@ public class StringProcessor {
                                 e.printStackTrace();
                             }
                         } else {
-                            // Handle incomplete Unicode escape sequence if needed
                             result.append(ch);
                         }
                         break;

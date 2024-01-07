@@ -17,20 +17,20 @@ public class Converter {
 
         for (DataSegVar v : dataSeg.getVars()) {
             if (v.getAddr() / wordLength - lineno > 0 && !buf.isEmpty()) {
-                coe.append(buf).append(",\n");
+                coe.append(Utils.padLeft(String.valueOf(buf),8,'0')).append(",\n");
                 buf.setLength(0);
                 lineno++;
             }
-            coe.append("00000000,\n".repeat((int) (v.getAddr() / wordLength) - lineno));
-            lineno = (int) (v.getAddr() / wordLength);
+            coe.append("00000000,\n".repeat((v.getAddr() / wordLength) - lineno));
+            lineno = v.getAddr() / wordLength;
             buf.insert(0, "00".repeat(((v.getAddr() % wordLength) - buf.length() / 2 + wordLength) % wordLength));
             for (DataSegVarComp comp : v.getComps()) {
                 switch (comp.getType()) {
                     case "ascii":
                         for (char c : comp.getVal().toCharArray()) {
-                            buf.insert(0, Utils.decToHex((int) c, 8, false));
+                            buf.insert(0, Utils.decToHex(c, 8, false));
                             if (buf.length() == 8) {
-                                coe.append(buf.toString()).append(",\n");
+                                coe.append(buf).append(",\n");
                                 buf.setLength(0);
                                 lineno++;
                             }
@@ -44,7 +44,7 @@ public class Converter {
                                 Utils.sizeof(comp.getType()) * 8, true), false));
                 }
                 if (buf.length() == 8) {
-                    coe.append(buf.toString()).append(",\n");
+                    coe.append(buf).append(",\n");
                     buf.setLength(0);
                     lineno++;
                 }

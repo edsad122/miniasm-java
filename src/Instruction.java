@@ -9,6 +9,16 @@ public class Instruction {
     private String desc; // 指令描述
     private String pseudo; // 指令伪代码
     private Pattern insPattern; // 指令正则模式
+
+    public String getSrc() {
+        return src;
+    }
+
+    public void setSrc(String src) {
+        this.src = src;
+    }
+
+    private String src;//原始数据
     private List<InstructionComponent> components; // 指令组分
 
     public static Instruction newInstance(Instruction baseOn) {
@@ -97,15 +107,10 @@ public class Instruction {
         return components.stream().map(InstructionComponent::getVal).reduce(String::concat).orElse("");
     }
 
-    public String toHex(boolean zeroX) {
-        return binToHex(toBinary(), zeroX);
+    public String toHex() {
+        return Utils.binToHex(toBinary(), false);
     }
 
-    private String binToHex(String binary, boolean zeroX) {
-        // Implement binToHex logic here
-        // This is just a placeholder
-        return "";
-    }
 }
 
 enum InstructionComponentType {

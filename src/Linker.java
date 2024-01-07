@@ -1,22 +1,38 @@
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.IntStream;
+
 public class Linker {
     /**
      * 计算asm_中有多少条指令（考虑了宏指令展开）
      */
     public static int countIns(String asm) {
-        String[] lines = asm.replaceAll("\r\n", "\n")
-                .replaceAll("#(.*)\\n", "\n")
+        String[] lines = asm.replace("\r\n", "\n")
+                .replaceAll("#(.*)\n", "\n")
                 .split("\n");
 
+        List<String> asmList = Arrays.stream(lines)
+                .map(String::trim)
+                .filter(line -> !line.trim().isEmpty())
+                .toList();
+
+        // 展开宏指令
+        List<Integer> indices = new ArrayList<>();
+        IntStream.range(0, asmList.size()).forEach(indices::add);
+        asmList = Assembler.expandMacros(asmList, indices);
+
         int insCount = 0;
-        for (String line : lines) {
+        for (String line : asmList) {
             if (line.matches("^(\\w+):\\s*$")) {
-                continue;  // 纯label行
+                // 纯label行
+                continue;
             } else {
-                insCount += 1;
+                insCount++;
             }
         }
+
+        System.out.println("Instructions Count: " + insCount);
         return insCount;
     }
 

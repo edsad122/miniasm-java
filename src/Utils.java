@@ -1,5 +1,6 @@
 
 public class Utils {
+
     /**
      * 将label或字面量转换为二进制
      *
@@ -57,7 +58,7 @@ public class Utils {
             return decToBin(Integer.parseInt(literal), len, signExt);
         }
     }
-    private static String padLeft(String str, int len, char padChar) {
+    public static String padLeft(String str, int len, char padChar) {
         StringBuilder result = new StringBuilder(str);
         while (result.length() < len) {
             result.insert(0, padChar);
@@ -165,4 +166,6 @@ public class Utils {
     private static int hexToDec(String hex) {
         return Integer.parseInt(hex, 16);
     }
+
+
 }
