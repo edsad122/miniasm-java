@@ -569,8 +569,8 @@ public class MinisysInstructions {
     ) {
         List<InstructionComponent> components = new ArrayList<>();
         for (InstructionComponent data : componentsData) {
-            int lBit = (int) data.getLBit();
-            int rBit = (int) data.getRBit();
+            int lBit = data.getLBit();
+            int rBit = data.getRBit();
             String descStr = (String) data.getDesc();
             Function<Matcher, String> toBinary = (Function<Matcher, String>) data.getToBinary();
             InstructionComponentType type = (InstructionComponentType) data.getType();

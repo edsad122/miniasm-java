@@ -55,8 +55,7 @@ public class Assembler {
         return pc;
     }
     /*
-    所提供的TypeScript代码中的“parseDataSeg”函数用于解析汇编语言源代码中的数据段。该函数将汇编语言指令的数组作为参数。
-    在“parseDataSeg”中，有一个嵌套函数“parseInitValue”，用于解析变量的初始值。
+    函数“parseInitValue”，用于解析变量的初始值。
     此函数接受两个参数：“type”和“init”`type是变量类型，init是变量的初始值。
     “parseInitValue”函数首先声明，如果变量类型不是“ascii”，则初始值不应包含双引号字符。它还断言初始值不应以逗号开头或结尾。
     如果变量类型不是“ascii”，则函数会用逗号分隔初始值，并返回一个修剪后的值数组。
@@ -72,7 +71,6 @@ public class Assembler {
         init = init.trim();
         assert init.charAt(0) != ',' && init.charAt(init.length() - 1) != ',' : "数据初始化值头或尾有非法逗号";
 
-        List<DataSegVarComp> result = new ArrayList<>();
         if (!Objects.equals(type, "ascii")) {
             return Stream.of(init.split("\\s*,")).toList();
         } else {
@@ -115,7 +113,7 @@ public class Assembler {
                 } else {
                     assert inQuote : "有非法字符出现在引号以外";
                     if (nextEscape) {
-                        buf.append(StringProcessor.unraw("\\" + ch));
+                        buf.append(StringProcessor.unraw(ch));
                     } else {
                         buf.append(ch);
                     }
@@ -278,7 +276,6 @@ public class Assembler {
             Matcher labelMatcher = labelPattern.matcher(v);
 
             if (labelMatcher.matches()) {
-                assert labels.stream().noneMatch(label -> label.getName().equals(labelMatcher.group(1))) : "Duplicate label: " + labelMatcher.group(1) + ", at line " + lineno.get(i) + ".";
                 labels.add(new TextSegLabel(labelMatcher.group(1), insLineno, Utils.getOffsetAddr(startAddr, (insLineno - 1) * Utils.sizeof("ins"))));
                 if (!labelMatcher.group(2).trim().isEmpty()) {
                     insLineno++;
@@ -329,8 +326,6 @@ public class Assembler {
                 break;
             }
         }
-
-        assert instructionIndex != -1 : String.format("无效的指令助记符或错误的指令用法：%s，在代码第 %d 行。", symbol, lineno);
         // 单行汇编去空格
         asm = Utils.serialString(matcher.group(2));
         // pc移进
