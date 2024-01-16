@@ -1,3 +1,5 @@
+## 详情信息：https://edsad122.github.io/blog/2024/01/11/%E7%94%A8Java%E5%AE%9E%E7%8E%B0%E6%B1%87%E7%BC%96%E5%99%A8-%E9%93%BE%E6%8E%A5%E5%99%A8/
+该汇编器为直接转译，与词法分析、文法分析无关。
 ## 宏指令
 支持push、pop、jg、jge、jl、jle、move指令。
 ## 链接功能
